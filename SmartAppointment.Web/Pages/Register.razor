@@ -1,0 +1,111 @@
+﻿@*  @page "/register"
+@using SmartAppointment.Web.Models
+@using MudBlazor
+@using MudBlazor.Components
+@using SmartAppointment.Domain
+@inject SmartAppointment.Web.Services.AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+ <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+     <DataAnnotationsValidator />
+     <ValidationSummary />
+     <div>
+         <label>Email:</label>
+         <InputText @bind-Value="registerModel.Email" />
+     </div>
+     <div>
+         <label>Password:</label>
+         <InputText @bind-Value="registerModel.Password" type="password" />
+     </div>
+     <div>
+         <label>Role:</label>
+         <InputText @bind-Value="registerModel.Role" />
+     </div>
+     <button type="submit">Register</button>
+ </EditForm> 
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+
+    
+    private async Task HandleRegister()
+    {
+        try
+        {
+            var success = await AuthService.RegisterAsync(registerModel);
+            if (success)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                Console.WriteLine("Registration failed. Please check server response.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+
+    }
+}  *@
+
+@page "/register"
+@using SmartAppointment.Web.Models
+@using MudBlazor
+@inject SmartAppointment.Web.Services.AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+<EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <MudPaper Elevation="3" Class="pa-4" MaxWidth="400px" Style="margin:auto; border: 2px solid #ddd; border-radius: 8px;">
+        <MudText Typo="Typo.h2" Align="Align.Center" Class="mb-4">Create an Account</MudText>
+
+        <MudTextField Label="Email" @bind-Value="registerModel.Email" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" />
+
+        <MudTextField Label="Password" @bind-Value="registerModel.Password" Type="password" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" />
+
+        <MudTextField Label="Role" @bind-Value="registerModel.Role" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" />
+
+          <div class="d-grid gap-2">
+      
+                <button type="submit" class="btn btn-primary btn-lg">Register</button>
+        
+        </div>
+        <MudText Align="Align.Center" Class="mt-2">
+            Already have an account? <MudLink Href="/login" Color="Color.Primary">Login</MudLink>
+        </MudText>
+    </MudPaper>
+</EditForm>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            var success = await AuthService.RegisterAsync(registerModel);
+            if (success)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                // You could show a Snackbar or dialog with an error message
+                Console.WriteLine("Registration failed. Please check server response.");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle and show a user-friendly error message (e.g., Snackbar)
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+}

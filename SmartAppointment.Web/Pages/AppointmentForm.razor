@@ -1,0 +1,54 @@
+﻿@page "/appointments/book"
+@using SmartAppointment.Web.Models
+@using SmartAppointment.Web.Services
+@inject AppointmentService AppointmentService
+@inject NavigationManager NavigationManager
+
+<h3>Book an Appointment</h3>
+
+<EditForm Model="newAppointment" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Professional ID:</label>
+        <InputText @bind-Value="professionalIdString" />
+    </div>
+
+    <div>
+        <label>Appointment Date:</label>
+        <InputDate @bind-Value="newAppointment.AppointmentDate" />
+    </div>
+
+    <button type="submit">Book Appointment</button>
+</EditForm>
+
+@code {
+    private Models.AppointmentModel newAppointment = new Models.AppointmentModel();
+    private string professionalIdString = string.Empty; // Temporarily store the string value
+
+    private async Task HandleValidSubmit()
+    {
+        // Convert string to Guid before passing to the model
+        if (Guid.TryParse(professionalIdString, out var professionalId))
+        {
+            newAppointment.ProfessionalId = professionalId;
+            var result = await AppointmentService.CreateAppointmentAsync(newAppointment);
+
+            if (result != null) // If result is null or falsy, consider adding better validation here
+            {
+                NavigationManager.NavigateTo("/appointments");
+            }
+            else
+            {
+                // Handle error (you could show an error message)
+                Console.WriteLine("There was an issue creating the appointment.");
+            }
+        }
+        else
+        {
+            // Handle invalid Guid input (you could show an error message)
+            Console.WriteLine("Invalid Professional ID.");
+        }
+    }
+}
