@@ -19,7 +19,13 @@ namespace SmartAppointment.Infrastructure.Data
             modelBuilder.Entity<Appointment>()
                 .Property(a => a.Status)
                 .HasConversion<string>(); // Store as string instead of int
+
+            modelBuilder.Entity<Professional>()
+           .HasIndex(p => p.SLMC)
+           .IsUnique();
         }
+
+
 
     }
 };

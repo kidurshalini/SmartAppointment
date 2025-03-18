@@ -4,25 +4,26 @@
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
-        public string Specialization { get; set; }
+        public string Specialization { get; set; } // This property exists
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
-
-        // Reference to the IdentityUser (stored as string key) for authentication details
-        public string UserId { get; set; }
+        public string SLMC { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Constructor used when creating a new professional
-        public Professional(string name, string specialization, string email, string phoneNumber, string userId)
+        public Professional(string name, string specialization, string email, string phoneNumber, string slmc)
         {
             Name = name;
             Specialization = specialization;
             Email = email;
             PhoneNumber = phoneNumber;
-            UserId = userId;
+            SLMC = slmc;
         }
 
-        // Parameterless constructor for EF Core
-        protected Professional() { }
+        public Professional(Guid id)
+        {
+            Id = id;
+        }
+        public Professional() { }
+
     }
 }

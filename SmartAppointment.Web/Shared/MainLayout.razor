@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@* @using SmartAppointment.Web.Services
+@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
 
 <PageTitle>SmartAppointment.Web</PageTitle>
 
@@ -8,12 +11,96 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        <div class="d-flex justify-content-end px-3">
+            <NavLink class="nav-link" href="/login" Match="NavLinkMatch.Prefix">
+                <span class="oi oi-account-login" aria-hidden="true"></span> Login
+            </NavLink>
         </div>
-
+        <button @onclick="Logout">Logout</button>
         <article class="content px-4">
             @Body
         </article>
     </main>
+
+
+
 </div>
+@code {
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        NavigationManager.NavigateTo("/login"); // Redirect to login page
+    }
+} *@
+
+@using SmartAppointment.Web.Services
+@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>SmartAppointment.Web</PageTitle>
+
+<div class="d-flex vh-100">
+    <!-- Sidebar -->
+    <div class="bg-dark text-white p-3" style="width: 250px;">
+        <NavMenu />
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1 d-flex flex-column">
+        <!-- Header -->
+        <div class="d-flex justify-content-end align-items-center p-3 bg-light shadow-sm">
+            @if (isAuthenticated)
+            {
+                <button @onclick="Logout" class="btn btn-danger btn-sm d-flex align-items-center">
+                    <i class="oi oi-account-logout me-2"></i> Logout
+                </button>
+            }
+            else
+            {
+
+                <NavLink class="btn btn-primary btn-sm d-flex align-items-center me-3" href="/register" Match="NavLinkMatch.Prefix">
+                    <span class="oi oi-pencil me-4" aria-hidden="true"></span> Register
+                </NavLink>
+
+                <NavLink class="btn btn-primary btn-sm d-flex align-items-center" href="/login" Match="NavLinkMatch.Prefix">
+                    <i class="oi oi-account-login me-2"></i> Login
+                </NavLink>
+
+                
+            }
+        </div>
+
+        <!-- Content -->
+        <main class="container-fluid p-4 bg-light">
+            @Body
+        </main>
+    </div>
+</div>
+
+@code {
+    private bool isAuthenticated = false;
+    private bool isInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check if the user is authenticated (e.g., by checking for a token in localStorage)
+            var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+            isAuthenticated = !string.IsNullOrEmpty(token);
+            isInitialized = true;
+
+            // Trigger a re-render to update the UI
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        isAuthenticated = false; // Update the authentication state
+        NavigationManager.NavigateTo("/login"); // Redirect to login page
+    }
+}

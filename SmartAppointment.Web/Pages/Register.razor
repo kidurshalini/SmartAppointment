@@ -69,11 +69,28 @@
 
         <MudTextField Label="Email" @bind-Value="registerModel.Email" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" />
 
-        <MudTextField Label="Password" @bind-Value="registerModel.Password" Type="password" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" />
+       <MudTextField Label="Password" 
+              @bind-Value="registerModel.Password" 
+              InputType="@passwordInputType"
+              FullWidth="true" 
+              Margin="Margin.Normal" 
+              Variant="Variant.Filled">
+    <Adornment End>
+        <MudIconButton Icon="@passwordIcon" OnClick="TogglePasswordVisibility" />
+    </Adornment>
+</MudTextField>
+   @*      <MudTextField Label="Role" @bind-Value="registerModel.Role" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" /> *@
 
-        <MudTextField Label="Role" @bind-Value="registerModel.Role" FullWidth="true" Margin="Margin.Normal" Variant="Variant.Filled" />
+        <label>Role</label>
+        <select @bind="registerModel.Role" class="form-control">
+            @foreach (var role in roles)
+            {
+                <option value="@role">@role</option>
+            }
+        </select>
 
-          <div class="d-grid gap-2">
+
+          <div class="d-grid gap-2 mt-5">
       
                 <button type="submit" class="btn btn-primary btn-lg">Register</button>
         
@@ -85,7 +102,28 @@
 </EditForm>
 
 @code {
+    private InputType passwordInputType = InputType.Password;
+    private string passwordIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void TogglePasswordVisibility()
+    {
+        if (passwordInputType == InputType.Password)
+        {
+            passwordInputType = InputType.Text;
+            passwordIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            passwordInputType = InputType.Password;
+            passwordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+
     private RegisterModel registerModel = new RegisterModel();
+    // Define a list of roles
+    private List<string> roles = new() {"User", "Professional" };
+
+    
 
     private async Task HandleRegister()
     {
@@ -107,5 +145,7 @@
             // Handle and show a user-friendly error message (e.g., Snackbar)
             Console.WriteLine($"Exception: {ex.Message}");
         }
+
+    
     }
 }

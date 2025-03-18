@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -31,13 +32,16 @@ namespace SmartAppointment.API.Controllers
 
             if (result.Succeeded)
             {
-                // Assign Role
-                if (!string.IsNullOrEmpty(model.Role) && await _userManager.IsInRoleAsync(user, model.Role) == false)
+                // Assign Role (if provided and valid)
+                if (!string.IsNullOrEmpty(model.Role))
                 {
-                    await _userManager.AddToRoleAsync(user, model.Role);
+                    if (await _userManager.IsInRoleAsync(user, model.Role) == false)
+                    {
+                        await _userManager.AddToRoleAsync(user, model.Role);
+                    }
                 }
 
-                return Ok(new { message = $"User Registered Successfully as {model.Role}!" });
+                return Ok(new { message = $"User Registered Successfully as {model.Role ?? "User"}!" });
             }
 
             return BadRequest(result.Errors);
@@ -48,26 +52,34 @@ namespace SmartAppointment.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null || !(await _userManager.CheckPasswordAsync(user, model.Password)))
-                return Unauthorized(new { message = "Invalid Credentials" });
 
-            var roles = await _userManager.GetRolesAsync(user);
-            var token = GenerateJwtToken(user, roles);
-            return Ok(new { token });
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                var token = GenerateJwtToken(user, roles);
+
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo
+                });
+            }
+
+            return Unauthorized("Invalid email or password.");
         }
 
         // ✅ GENERATE JWT TOKEN WITH ROLE
-        private string GenerateJwtToken(IdentityUser user, IList<string> roles)
+        private JwtSecurityToken GenerateJwtToken(IdentityUser user, IList<string> roles)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName)
-            };
+    {
+       new Claim(JwtRegisteredClaimNames.Sub, user.Id), 
+       new Claim(JwtRegisteredClaimNames.Email, user.Email), // Email
+       new Claim(ClaimTypes.Name, user.UserName) // Username
+    };
 
             // Add role claims
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
@@ -80,7 +92,18 @@ namespace SmartAppointment.API.Controllers
                 signingCredentials: credentials
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return token;
+        }
+
+
+        // ✅ LOGOUT ENDPOINT
+        [HttpPost("logout")]
+        [Authorize] // Ensure only authenticated users can access this endpoint
+        public IActionResult Logout()
+        {
+            // Optionally, you can blacklist the token here if needed
+            // For now, just return a success response
+            return Ok(new { message = "Logout successful" });
         }
     }
 

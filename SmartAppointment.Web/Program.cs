@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+﻿using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using MudBlazor.Services;
 using SmartAppointment.Web.Services;
@@ -21,21 +22,33 @@ builder.Services.AddHttpClient("BaseUrl", client =>
 {
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 });
+
+// ✅ Configure Blazor Server options
 builder.Services.AddServerSideBlazor()
     .AddHubOptions(options =>
     {
         options.ClientTimeoutInterval = TimeSpan.FromMinutes(2);
         options.HandshakeTimeout = TimeSpan.FromSeconds(30);
     });
+
 // ✅ Register Services with Dependency Injection
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProfessionalService>();
+
+// ✅ Register Blazored.LocalStorage
+builder.Services.AddBlazoredLocalStorage();
 
 // ✅ Register Authentication State Provider
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
+// ✅ Register Custom Authentication State Provider
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+
+// ✅ Add MudBlazor services
 builder.Services.AddMudServices();
 
+// ✅ Build the application
 var app = builder.Build();
 
 // ✅ Configure the HTTP Request Pipeline

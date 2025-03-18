@@ -1,0 +1,133 @@
+﻿@page "/professional"
+@using SmartAppointment.Web.Models
+@using SmartAppointment.Web.Services
+
+@inject NavigationManager NavigationManager
+@inject ProfessionalService ProfessionalService
+
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="mb-0">Add Professional</h3>
+        </div>
+        <div class="card-body">
+            @if (!isSubmitted)
+            {
+                <EditForm Model="@professional" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="alert alert-danger" />
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <InputText id="name" class="form-control" @bind-Value="professional.Name" />
+                        <ValidationMessage For="@(() => professional.Name)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="specialization" class="form-label">Specialization:</label>
+                        <InputSelect id="specialization" class="form-control" @bind-Value="professional.Specialization">
+                            <option value="">Select Specialization</option>
+                            @foreach (var specialization in specializations)
+                            {
+                                <option value="@specialization">@specialization</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => professional.Specialization)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <InputText id="email" class="form-control" @bind-Value="professional.Email" />
+                        <ValidationMessage For="@(() => professional.Email)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="SLMC" class="form-label">Sri Lanka Medical Council Registration Number:</label>
+                        <InputText id="SLMC" class="form-control" @bind-Value="professional.SLMC" />
+                        <ValidationMessage For="@(() => professional.SLMC)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">Phone Number:</label>
+                        <InputText id="phoneNumber" class="form-control" @bind-Value="professional.PhoneNumber" />
+                        <ValidationMessage For="@(() => professional.PhoneNumber)" class="text-danger" />
+                    </div>
+                  
+                    
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                }
+                                Submit
+                            </button>
+
+                            <button type="button" class="btn btn-secondary ms-2" @onclick="ResetForm">Reset</button>
+                        </div>
+
+                </EditForm>
+            }
+            else
+            {
+                <div class="alert alert-success">
+                    Professional added successfully!
+                </div>
+                <button class="btn btn-secondary" @onclick="ResetForm">Add Another Professional</button>
+            }
+
+            @if (isError)
+            {
+                <div class="alert alert-danger mt-3">@errorMessage</div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProfessionalModel professional = new ProfessionalModel();
+    private bool isSubmitted = false;
+    private bool isLoading = false;
+    private bool isError = false;
+    private string errorMessage = string.Empty;
+
+    private List<string> specializations = new()
+    {
+        "Cardiologist",
+        "Dermatologist",
+        "Neurologist",
+        "Orthopedic Surgeon",
+        "Pediatrician",
+        "Psychiatrist",
+        "General Practitioner"
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        isError = false;
+        errorMessage = string.Empty;
+        isLoading = true;
+
+        bool success = await ProfessionalService.AddProfessionalAsync(professional);
+
+        isLoading = false;
+
+        if (success)
+        {
+            isSubmitted = true;
+        }
+        else
+        {
+            isError = true;
+            errorMessage = "Failed to add professional. Please try again.";
+        }
+    }
+
+    private void ResetForm()
+    {
+        professional = new ProfessionalModel();
+        isSubmitted = false;
+        isError = false;
+        errorMessage = string.Empty;
+    }
+}

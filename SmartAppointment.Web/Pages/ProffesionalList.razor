@@ -1,0 +1,233 @@
+﻿@* @page "/ProfessionalView"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+@inject ProfessionalService ProfessionalService
+
+<h3 class="mb-4">Professionals List</h3>
+
+<div class="mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="specializationFilter" class="form-label">Filter by Specialization</label>
+            <InputSelect id="specializationFilter" class="form-control" @bind-Value="specializationFilter">
+                <option value="">All Specializations</option>
+                @foreach (var specialization in specializations)
+                {
+                    <option value="@specialization">@specialization</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnFilterChanged">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover professional-table">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>SLMC</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (professionals == null)
+            {
+                <tr>
+                    <td colspan="5" class="text-center">Loading...</td>
+                </tr>
+            }
+            else if (!professionals.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center">No professionals found.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var professional in professionals)
+                {
+                    <tr>
+                        <td>@professional.Name</td>
+                        <td>@professional.Specialization</td>
+                        <td>@professional.Email</td>
+                        <td>@professional.PhoneNumber</td>
+                        <td>@professional.SLMC</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ProfessionalModel> professionals = new();
+    private string specializationFilter = "";
+
+    private List<string> specializations = new()
+    {
+        "Cardiologist",
+        "Dermatologist",
+        "Neurologist",
+        "Orthopedic Surgeon",
+        "Pediatrician",
+        "Psychiatrist",
+        "General Practitioner"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfessionals();
+    }
+
+    private async Task LoadProfessionals()
+    {
+        professionals = await ProfessionalService.GetProfessionalsAsync(specializationFilter);
+    }
+
+    private async Task OnFilterChanged()
+    {
+        await LoadProfessionals();
+    }
+}
+ *@
+ 
+ @page "/ProfessionalView"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+@inject ProfessionalService ProfessionalService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<h3 class="mb-4">Professionals List</h3>
+
+<div class="mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="specializationFilter" class="form-label">Filter by Specialization</label>
+            <InputSelect id="specializationFilter" class="form-control" @bind-Value="specializationFilter">
+                <option value="">All Specializations</option>
+                @foreach (var specialization in specializations)
+                {
+                    <option value="@specialization">@specialization</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnFilterChanged">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover professional-table">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>SLMC</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (professionals == null)
+            {
+                <tr>
+                    <td colspan="6" class="text-center">Loading...</td>
+                </tr>
+            }
+            else if (!professionals.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center">No professionals found.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var professional in professionals)
+                {
+                    <tr>
+                        <td>@professional.Name</td>
+                        <td>@professional.Specialization</td>
+                        <td>@professional.Email</td>
+                        <td>@professional.PhoneNumber</td>
+                        <td>@professional.SLMC</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => OnEditProfessional(professional.Id)">
+                                Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm ms-2" @onclick="() => OnDeleteProfessional(professional.Id)">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ProfessionalModel> professionals = new();
+    private string specializationFilter = "";
+
+    private List<string> specializations = new()
+    {
+        "Cardiologist",
+        "Dermatologist",
+        "Neurologist",
+        "Orthopedic Surgeon",
+        "Pediatrician",
+        "Psychiatrist",
+        "General Practitioner"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfessionals();
+    }
+
+    private async Task LoadProfessionals()
+    {
+        professionals = await ProfessionalService.GetProfessionalsAsync(specializationFilter);
+    }
+
+    private async Task OnFilterChanged()
+    {
+        await LoadProfessionals();
+    }
+
+    private async Task OnEditProfessional(Guid professionalId)
+    {
+        // Navigate to the edit page for the selected professional
+        NavigationManager.NavigateTo($"/edit-professional/{professionalId}");
+    }
+
+    private async Task OnDeleteProfessional(Guid professionalId)
+    {
+        // Confirm before deletion
+        var isConfirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this professional?");
+        if (isConfirmed)
+        {
+         
+          
+            var isDeleted = await ProfessionalService.DeleteProfessionalAsync(professionalId);
+            if (isDeleted)
+            {
+                // Reload the professionals list after successful deletion
+                await LoadProfessionals();
+            }
+            else
+            {
+                // Handle failure (optional: show a toast or alert)
+                Console.WriteLine("Failed to delete the professional.");
+            }
+        }
+    }
+}
