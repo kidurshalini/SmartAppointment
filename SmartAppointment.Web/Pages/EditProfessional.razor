@@ -1,0 +1,91 @@
+﻿@page "/EditProfessional/{ProfessionalId:guid}"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+@inject ProfessionalService ProfessionalService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Professional</h3>
+
+@if (professional == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="form-group">
+        <label for="name">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="professional.Name" />
+    </div>
+    <div class="form-group">
+        <label for="specialization">Specialization</label>
+        <InputSelect id="specialization" class="form-control" @bind-Value="professional.Specialization">
+            <option value="">Select Specialization</option>
+            @foreach (var specialization in specializations)
+            {
+                <option value="@specialization">@specialization</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="professional.Email" />
+    </div>
+    <div class="form-group">
+        <label for="phoneNumber">Phone Number</label>
+        <InputText id="phoneNumber" class="form-control" @bind-Value="professional.PhoneNumber" />
+    </div>
+    <div class="form-group">
+        <label for="slmc">SLMC</label>
+        <InputText id="slmc" class="form-control" @bind-Value="professional.SLMC" />
+    </div>
+    <button class="btn btn-primary" @onclick="OnSave">Save</button>
+    <button class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+}
+
+@code {
+    [Parameter]
+    public Guid ProfessionalId { get; set; }
+
+    private ProfessionalModel professional;
+    private List<string> specializations = new()
+    {
+        "Cardiologist",
+        "Dermatologist",
+        "Neurologist",
+        "Orthopedic Surgeon",
+        "Pediatrician",
+        "Psychiatrist",
+        "General Practitioner"
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Fetch the professional details when the ProfessionalId parameter is set
+        professional = await ProfessionalService.GetProfessionalByIdAsync(ProfessionalId);
+
+        if (professional == null)
+        {
+            // Redirect to the Professionals list if the professional is not found
+            NavigationManager.NavigateTo("/ProfessionalView");
+        }
+    }
+
+    private async Task OnSave()
+    {
+        var isUpdated = await ProfessionalService.UpdateProfessionalAsync(professional);
+        if (isUpdated)
+        {
+            NavigationManager.NavigateTo("/ProfessionalView");
+        }
+        else
+        {
+            // Handle update failure (e.g., show an error message)
+            Console.WriteLine("Failed to update the professional.");
+        }
+    }
+
+    private void OnCancel()
+    {
+        NavigationManager.NavigateTo("/ProfessionalView");
+    }
+}

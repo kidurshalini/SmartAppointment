@@ -129,18 +129,31 @@ public class ProfessionalService
         }
     }
 
-    public async Task<bool> UpdateProfessionalAsync(ProfessionalModel professional)
+    public async Task<ProfessionalModel> GetProfessionalByIdAsync(Guid id)
     {
-        try
+        var response = await _httpClient.GetAsync($"api/professional/{id}");
+
+        if (response.IsSuccessStatusCode)
         {
-            var response = await _httpClient.PutAsJsonAsync($"api/professional/{professional.Id}", professional);
-            return response.IsSuccessStatusCode;
+            return await response.Content.ReadFromJsonAsync<ProfessionalModel>();
         }
-        catch
+        else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            return false;
+            return null; // Professional not found
+        }
+        else
+        {
+            throw new Exception($"Failed to fetch professional: {response.StatusCode}");
         }
     }
+
+    public async Task<bool> UpdateProfessionalAsync(ProfessionalModel professional)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/professional/{professional.Id}", professional);
+        return response.IsSuccessStatusCode;
+    }
+
+
 
     public async Task<bool> DeleteProfessionalAsync(Guid id)
     {
@@ -153,10 +166,5 @@ public class ProfessionalService
         {
             return false;
         }
-    }
-
-    public async Task<bool> UpdateProfessionalAsync(Professional professional)
-    {
-        throw new NotImplementedException();
     }
 }

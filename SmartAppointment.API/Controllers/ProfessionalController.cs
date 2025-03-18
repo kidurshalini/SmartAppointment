@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartAppointment.Domain.Entities;
 using SmartAppointment.Infrastructure.Data;
@@ -17,6 +18,7 @@ public class ProfessionalController : ControllerBase
     }
 
     // Endpoint to add a new professional
+  
     [HttpPost]
     public async Task<IActionResult> AddProfessional([FromBody] ProfessionalModel professional)
     {
@@ -77,23 +79,26 @@ public class ProfessionalController : ControllerBase
         return Ok(professionals);
     }
 
-    // ✅ Get a single professional by ID
     [HttpGet("{id}")]
-    public async Task<ActionResult<Professional>> GetProfessionalById(int id)
+    public async Task<ActionResult<ProfessionalModel>> GetProfessionalById(Guid id)
     {
+        // Fetch the professional from the database
         var professional = await _context.Professionals.FindAsync(id);
 
+        // If professional is not found, return 404
         if (professional == null)
         {
-            return NotFound(new { Message = "Professional not found." });
+            return NotFound();
         }
 
+        // Return the professional data
         return Ok(professional);
     }
 
+
     // ✅ Update a professional
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateProfessional(int id, [FromBody] ProfessionalModel updatedProfessional)
+    public async Task<IActionResult> UpdateProfessional(Guid id, [FromBody] ProfessionalModel updatedProfessional)
     {
         if (!ModelState.IsValid)
         {
@@ -117,6 +122,7 @@ public class ProfessionalController : ControllerBase
 
         return Ok(new { Message = "Professional updated successfully!" });
     }
+
 
     // ✅ Delete a professional
     [HttpDelete("{id}")]

@@ -203,11 +203,16 @@
         await LoadProfessionals();
     }
 
-    private async Task OnEditProfessional(Guid professionalId)
+    private void OnEditProfessional(Guid professionalId)
     {
-        // Navigate to the edit page for the selected professional
-        NavigationManager.NavigateTo($"/edit-professional/{professionalId}");
+        if (professionalId == Guid.Empty)
+        {
+            Console.WriteLine("Invalid professional ID.");
+            return;
+        }
+        NavigationManager.NavigateTo($"/EditProfessional/{professionalId}");
     }
+
 
     private async Task OnDeleteProfessional(Guid professionalId)
     {
