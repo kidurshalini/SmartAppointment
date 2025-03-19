@@ -1,0 +1,153 @@
+﻿@page "/Schedule"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+@using SmartAppointment.Web.Services
+@inject ProfessionalService ProfessionalService
+@inject NavigationManager NavigationManager
+@inject ScheduleService ScheduleService
+
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="mb-0">Add Schedule</h3>
+        </div>
+        <div class="card-body">
+            @if (!isSubmitted)
+            {
+                <EditForm Model="@scheduleModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="alert alert-danger" />
+
+                    <!-- Professional Dropdown -->
+                    <div class="mb-3">
+                        <label for="professional" class="form-label">Select Professional:</label>
+                        <InputSelect id="professional" class="form-control" @bind-Value="scheduleModel.ProfessionalId">
+                            <option value="">Select Professional</option>
+                            @if (professionals != null)
+                            {
+                                @foreach (var professional in professionals)
+                                {
+                                    <option value="@professional.Id">@professional.Name</option>
+                                }
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => scheduleModel.ProfessionalId)" class="text-danger" />
+                    </div>
+
+                    <!-- Appointment Date -->
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">Appointment Date:</label>
+                        <InputDate id="appointmentDate" class="form-control" @bind-Value="scheduleModel.AppointmentDate" />
+                        <ValidationMessage For="@(() => scheduleModel.AppointmentDate)" class="text-danger" />
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status:</label>
+                        <InputSelect id="status" class="form-control" @bind-Value="scheduleModel.Status">
+                            <option value="">Select Status</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Completed">Completed</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => scheduleModel.Status)" class="text-danger" />
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                            }
+                            Submit
+                        </button>
+
+                        <button type="button" class="btn btn-secondary ms-2" @onclick="ResetForm">Reset</button>
+                    </div>
+                </EditForm>
+            }
+            else
+            {
+                <div class="alert alert-success">
+                    Schedule added successfully!
+                </div>
+                <button class="btn btn-secondary" @onclick="ResetForm">Add Another Schedule</button>
+            }
+
+            @if (isError)
+            {
+                <div class="alert alert-danger mt-3">@errorMessage</div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private scheduleModel scheduleModel = new scheduleModel();
+    private List<ProfessionalModel> professionals = new List<ProfessionalModel>();
+
+    private bool isSubmitted = false;
+    private bool isLoading = false;
+    private bool isError = false;
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize AppointmentDate to today's date
+        scheduleModel.AppointmentDate = DateTime.Today;
+
+        // Fetch the list of professionals
+        try
+        {
+            professionals = await ProfessionalService.GetProfessionalsAsync();
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            errorMessage = $"Failed to load professionals: {ex.Message}";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isError = false;
+        errorMessage = string.Empty;
+        isLoading = true;
+
+        try
+        {
+            // Add schedule
+            bool success = await ScheduleService.AddScheduleAsync(scheduleModel);
+
+            if (success)
+            {
+                isSubmitted = true;
+            }
+            else
+            {
+                isError = true;
+                errorMessage = "Failed to add schedule. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+
+        scheduleModel = new scheduleModel();
+        scheduleModel.AppointmentDate = DateTime.Today;
+        isSubmitted = false;
+        isError = false;
+        errorMessage = string.Empty;
+    }
+}

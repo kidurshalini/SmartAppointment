@@ -12,6 +12,7 @@ namespace SmartAppointment.Infrastructure.Data
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Professional> Professionals { get; set; }
         public DbSet<ProfessionalAvailability> ProfessionalAvailabilities { get; set; }
+        public DbSet<scheduleModel> scheduler { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -23,9 +24,16 @@ namespace SmartAppointment.Infrastructure.Data
             modelBuilder.Entity<Professional>()
            .HasIndex(p => p.SLMC)
            .IsUnique();
+
+            modelBuilder.Entity<scheduleModel>()
+             .HasOne(s => s.Professional) // Schedule has one Professional
+             .WithMany(p => p.scheduleModel) // Professional has many Schedules
+             .HasForeignKey(s => s.ProfessionalId) // Foreign key in Schedule
+             .OnDelete(DeleteBehavior.Cascade); // Optional: Define delete behavior
         }
-
-
-
     }
+
+
+
+    
 };

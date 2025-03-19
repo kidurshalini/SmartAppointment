@@ -58,6 +58,7 @@ public class ProfessionalController : ControllerBase
         return Ok(new { Message = "Professional added successfully!" });
     }
 
+
     // ✅ Get all professionals (supports filtering)
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Professional>>> GetProfessionals([FromQuery] string specialization = null)

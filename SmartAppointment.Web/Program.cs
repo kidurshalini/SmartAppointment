@@ -35,7 +35,7 @@ builder.Services.AddServerSideBlazor()
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfessionalService>();
-
+builder.Services.AddScoped<ScheduleService>();
 // ✅ Register Blazored.LocalStorage
 builder.Services.AddBlazoredLocalStorage();
 

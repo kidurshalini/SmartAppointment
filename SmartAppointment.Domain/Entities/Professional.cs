@@ -10,6 +10,7 @@
         public string SLMC { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public ICollection<scheduleModel> scheduleModel { get; set; }
         public Professional(string name, string specialization, string email, string phoneNumber, string slmc)
         {
             Name = name;

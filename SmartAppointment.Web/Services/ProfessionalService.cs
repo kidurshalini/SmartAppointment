@@ -147,6 +147,7 @@ public class ProfessionalService
         }
     }
 
+  
     public async Task<bool> UpdateProfessionalAsync(ProfessionalModel professional)
     {
         var response = await _httpClient.PutAsJsonAsync($"api/professional/{professional.Id}", professional);
