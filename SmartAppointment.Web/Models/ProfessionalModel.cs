@@ -26,9 +26,8 @@ namespace SmartAppointment.Web.Models
         public Guid Id { get;  set; }
 
         //[Required(ErrorMessage = "UserId is required.")]
-        //public string UserId { get; set; }
+        //public string UserId { get; set; 
+        public DateTime CreatedAt { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Sri Lanka Standard Time"));
 
-
-        //public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -76,7 +76,7 @@ namespace SmartAppointment.Infrastructure.Migrations
                     Specialization = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SLMC = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -191,32 +191,54 @@ namespace SmartAppointment.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Appointments",
+                name: "scheduler",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProfessionalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AppointmentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    AppointmentTime = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Appointments", x => x.Id);
+                    table.PrimaryKey("PK_scheduler", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Appointments_Professionals_ProfessionalId",
+                        name: "FK_scheduler_Professionals_ProfessionalId",
                         column: x => x.ProfessionalId,
                         principalTable: "Professionals",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Appointments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PatientName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AppointmentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SchedulerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Appointments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Appointments_scheduler_SchedulerId",
+                        column: x => x.SchedulerId,
+                        principalTable: "scheduler",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "IX_Appointments_ProfessionalId",
+                name: "IX_Appointments_SchedulerId",
                 table: "Appointments",
-                column: "ProfessionalId");
+                column: "SchedulerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -256,6 +278,17 @@ namespace SmartAppointment.Infrastructure.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Professionals_SLMC",
+                table: "Professionals",
+                column: "SLMC",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_scheduler_ProfessionalId",
+                table: "scheduler",
+                column: "ProfessionalId");
         }
 
         /// <inheritdoc />
@@ -283,13 +316,16 @@ namespace SmartAppointment.Infrastructure.Migrations
                 name: "ProfessionalAvailabilities");
 
             migrationBuilder.DropTable(
-                name: "Professionals");
+                name: "scheduler");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Professionals");
         }
     }
 }

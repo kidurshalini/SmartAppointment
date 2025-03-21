@@ -1,48 +1,39 @@
-﻿using SmartAppointment.Web.Models;
+﻿using SmartAppointment.Domain.Entities;
 
-namespace SmartAppointment.Web.Services
+public class AppointmentService
 {
-    public class AppointmentService
+    private readonly HttpClient _httpClient;
+
+    public AppointmentService(HttpClient httpClient)
     {
-        private readonly HttpClient _httpClient;
+        _httpClient = httpClient;
+    }
 
-        public AppointmentService(IHttpClientFactory httpClientFactory)
+    public async Task<SmartAppointment.Web.Models.ScheduleModel> GetScheduleByIdAsync(Guid scheduleId)
+    {
+        // Fetch the schedule from the API
+        var response = await _httpClient.GetAsync($"/api/Schedule/{scheduleId}");
+
+        if (response.IsSuccessStatusCode)
         {
-            _httpClient = httpClientFactory.CreateClient("BaseUrl");
+            // Deserialize the response content into ScheduleModel
+            return await response.Content.ReadFromJsonAsync<SmartAppointment.Web.Models.ScheduleModel>();
         }
-
-        public async Task<List<AppointmentModel>> GetAppointmentsAsync()
+        else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            return await _httpClient.GetFromJsonAsync<List<AppointmentModel>>("api/Appointments");
+            return null; // Schedule not found
         }
-
-        public async Task<List<AppointmentModel>> GetUserAppointmentsAsync()
+        else
         {
-            return await _httpClient.GetFromJsonAsync<List<AppointmentModel>>("api/Appointments/user");
-        }
-
-        public async Task<List<AppointmentModel>> GetProfessionalAppointmentsAsync()
-        {
-            return await _httpClient.GetFromJsonAsync<List<AppointmentModel>>("api/Appointments/professional");
-        }
-
-        public async Task<AppointmentModel?> CreateAppointmentAsync(AppointmentModel appointment)
-        {
-            var response = await _httpClient.PostAsJsonAsync("api/Appointments", appointment);
-            return response.IsSuccessStatusCode ?
-                   await response.Content.ReadFromJsonAsync<AppointmentModel>() : null;
-        }
-
-        public async Task<bool> UpdateAppointmentAsync(AppointmentModel appointment)
-        {
-            var response = await _httpClient.PutAsJsonAsync($"api/Appointments/{appointment.Id}", appointment);
-            return response.IsSuccessStatusCode;
-        }
-
-        public async Task<bool> DeleteAppointmentAsync(Guid id)
-        {
-            var response = await _httpClient.DeleteAsync($"api/Appointments/{id}");
-            return response.IsSuccessStatusCode;
+            // Throw an exception with the status code if the request fails
+            throw new Exception($"Failed to fetch schedule: {response.StatusCode}");
         }
     }
+    public async Task<bool> CreateAppointmentAsync(AppointmentModel appointment)
+    {
+        var response = await _httpClient.PostAsJsonAsync("api/Appointments", appointment);
+        return response.IsSuccessStatusCode;
+    }
+
+
 }

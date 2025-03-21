@@ -128,6 +128,8 @@ public class ProfessionalService
             return new List<ProfessionalModel>();
         }
     }
+    
+
 
     public async Task<ProfessionalModel> GetProfessionalByIdAsync(Guid id)
     {

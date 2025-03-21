@@ -47,7 +47,27 @@ namespace SmartAppointment.API.Controllers
             return BadRequest(result.Errors);
         }
 
-        // ✅ LOGIN ENDPOINT (Generates JWT Token with Role)
+        //// ✅ LOGIN ENDPOINT (Generates JWT Token with Role)
+        //[HttpPost("login")]
+        //public async Task<IActionResult> Login([FromBody] LoginModel model)
+        //{
+        //    var user = await _userManager.FindByEmailAsync(model.Email);
+
+        //    if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+        //    {
+        //        var roles = await _userManager.GetRolesAsync(user);
+        //        var token = GenerateJwtToken(user, roles);
+
+        //        return Ok(new
+        //        {
+        //            token = new JwtSecurityTokenHandler().WriteToken(token),
+        //            expiration = token.ValidTo
+        //        });
+        //    }
+
+        //    return Unauthorized("Invalid email or password.");
+        //}
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
@@ -61,34 +81,41 @@ namespace SmartAppointment.API.Controllers
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    userId = user.Id,
+                    role = roles.FirstOrDefault() // Return the first role
                 });
             }
 
             return Unauthorized("Invalid email or password.");
         }
 
+
         // ✅ GENERATE JWT TOKEN WITH ROLE
         private JwtSecurityToken GenerateJwtToken(IdentityUser user, IList<string> roles)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+            // Create claims for the token
             var claims = new List<Claim>
     {
-       new Claim(JwtRegisteredClaimNames.Sub, user.Id), 
-       new Claim(JwtRegisteredClaimNames.Email, user.Email), // Email
-       new Claim(ClaimTypes.Name, user.UserName) // Username
+        new Claim(ClaimTypes.NameIdentifier, user.Id), // User ID
+        new Claim(ClaimTypes.Email, user.Email),       // Email
+        new Claim(ClaimTypes.Name, user.UserName)      // Username
     };
 
-            // Add role claims
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            // Add roles as claims
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            // Generate the token
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                _configuration["Jwt:Issuer"],
-                _configuration["Jwt:Audience"],
-                claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(2), // Token expiration
                 signingCredentials: credentials
             );
 

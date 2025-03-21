@@ -68,21 +68,50 @@ namespace SmartAppointment.Web.Services
         //    }
         //    return null;
         //}
+        //public async Task<string> LoginAsync(LoginModel model)
+        //{
+        //    var response = await _http.PostAsJsonAsync("api/Auth/login", model);
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        // Assuming the API returns a JSON object with a "token" property
+        //        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        //        if (!string.IsNullOrEmpty(result?.Token))
+        //        {
+        //            // Store the token in localStorage
+        //            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+        //            return result.Token;
+        //        }
+        //    }
+        //    return null;
+        //}
+
+
         public async Task<string> LoginAsync(LoginModel model)
         {
             var response = await _http.PostAsJsonAsync("api/Auth/login", model);
             if (response.IsSuccessStatusCode)
             {
-                // Assuming the API returns a JSON object with a "token" property
+                // Read the raw response content
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"API Response: {responseContent}"); // Debugging
+
+                // Deserialize the response
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (!string.IsNullOrEmpty(result?.Token))
                 {
-                    // Store the token in localStorage
+                    Console.WriteLine($"Token: {result.Token}, Role: {result.Role}"); // Debugging
+
+                    // Store the token and role in localStorage
                     await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "userRole", result.Role);
                     return result.Token;
                 }
             }
             return null;
+        }
+        public async Task<string> GetUserRoleAsync()
+        {
+            return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", new object[] { "userRole" });
         }
         public async Task Logout()
         {
@@ -104,5 +133,6 @@ namespace SmartAppointment.Web.Services
     public class LoginResponse
     {
         public string Token { get; set; }
+        public string Role { get; set; }
     }
 }

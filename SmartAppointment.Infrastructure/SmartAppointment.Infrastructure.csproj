@@ -21,5 +21,9 @@
 		<ProjectReference Include="..\SmartAppointment.Application\SmartAppointment.Application.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Persistence\" />
+	</ItemGroup>
+
 
 </Project>

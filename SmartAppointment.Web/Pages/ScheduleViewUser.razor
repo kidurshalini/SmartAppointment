@@ -1,0 +1,290 @@
+﻿@* @page "/SchedulerViewUser"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+@inject ScheduleService ScheduleService
+@inject ProfessionalService ProfessionalService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<h3 class="mb-4">Scheduler List</h3>
+
+<div class="mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="appointmentDateFilter" class="form-label">Filter by Appointment Date</label>
+            <InputSelect id="appointmentDateFilter" class="form-control" @bind-Value="appointmentDateFilter">
+                <option value="">All Schedules</option>
+                @foreach (var date in appointmentDates)
+                {
+                    <option value="@date">@date</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnFilterChanged">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Doctor Name</th>
+                <th>Appointment Date</th>
+                <th>Appointment Time</th>
+                <th>Status</th>
+                <th>Book Now</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (schedules == null)
+            {
+                <tr>
+                    <td colspan="4" class="text-center">Loading...</td>
+                </tr>
+            }
+            else if (!schedules.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center">No schedules found.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var schedule in schedules)
+                {
+                    <tr>
+                        <td>
+                            @((professionals.ContainsKey(schedule.ProfessionalId) ? professionals[schedule.ProfessionalId].Name : "Unknown"))
+                        </td>
+                        <td>@schedule.AppointmentDate.ToString("yyyy-MM-dd")</td>
+                        <td> @schedule.AppointmentTime</td>
+                        <td>@schedule.Status</td>
+                        <td>
+                            @if (schedule.Status == "Scheduled")
+                            {
+                                <button href="/appointments/book" class="btn btn-warning btn-sm" @onclick="() => OnEdit(schedule.Id)">
+                                    <span class="oi oi-lock-unlocked"></span> Book Now
+                                </button>
+                            }
+                            else
+                            {
+                                <button  class="btn btn-secondary btn-sm" disabled>
+                                    <span class="oi oi-lock-locked"></span> Book Now
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ScheduleModel> schedules = new();
+    private List<string> appointmentDates = new();
+    private string appointmentDateFilter = "";
+    private Dictionary<Guid, ProfessionalModel> professionals = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSchedules();
+    }
+
+    private async Task LoadSchedules()
+    {
+        var scheduleList = await ScheduleService.GetScheduleAsync(appointmentDateFilter);
+
+        if (scheduleList == null || !scheduleList.Any())
+        {
+            schedules = new List<ScheduleModel>();
+            return;
+        }
+
+        professionals = new Dictionary<Guid, ProfessionalModel>();
+
+        foreach (var professionalId in scheduleList.Select(s => s.ProfessionalId).Distinct())
+        {
+            var professional = await ProfessionalService.GetProfessionalByIdAsync(professionalId);
+            if (professional != null)
+            {
+                professionals[professionalId] = professional;
+            }
+        }
+
+        schedules = scheduleList.Select(s => new ScheduleModel
+            {
+                Id = s.Id,
+                ProfessionalId = s.ProfessionalId,  // Keep ProfessionalId for reference
+                AppointmentDate = s.AppointmentDate,
+                AppointmentTime = s.AppointmentTime,
+                Status = s.Status
+            }).ToList();
+
+        appointmentDates = schedules.Select(s => s.AppointmentDate.ToString("yyyy-MM-dd")).Distinct().ToList();
+    }
+
+    private async Task OnFilterChanged()
+    {
+        await LoadSchedules();
+    }
+
+    private void OnEdit(Guid scheduleId)
+    {
+        NavigationManager.NavigateTo($"/EditSchedule/{scheduleId}");
+    }
+
+    private async Task OnDelete(Guid scheduleId)
+    {
+        var isConfirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this schedule?");
+        if (isConfirmed)
+        {
+            var isDeleted = await ScheduleService.DeleteScheduleAsync(scheduleId);
+            if (isDeleted)
+            {
+                await LoadSchedules();
+            }
+        }
+    }
+}
+ *@
+ @page "/SchedulerViewUser"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+@inject ScheduleService ScheduleService
+@inject ProfessionalService ProfessionalService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<h3 class="mb-4">Scheduler List</h3>
+
+<div class="mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="appointmentDateFilter" class="form-label">Filter by Appointment Date</label>
+            <InputSelect id="appointmentDateFilter" class="form-control" @bind-Value="appointmentDateFilter">
+                <option value="">All Schedules</option>
+                @foreach (var date in appointmentDates)
+                {
+                    <option value="@date">@date</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="OnFilterChanged">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Doctor Name</th>
+                <th>Appointment Date</th>
+                <th>Appointment Time</th>
+                <th>Status</th>
+                <th>Book Now</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (schedules == null)
+            {
+                <tr>
+                    <td colspan="4" class="text-center">Loading...</td>
+                </tr>
+            }
+            else if (!schedules.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center">No schedules found.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var schedule in schedules)
+                {
+                    <tr>
+                        <td>
+                            @((professionals.ContainsKey(schedule.ProfessionalId) ? professionals[schedule.ProfessionalId].Name : "Unknown"))
+                        </td>
+                        <td>@schedule.AppointmentDate.ToString("yyyy-MM-dd")</td>
+                        <td> @schedule.AppointmentTime</td>
+                        <td>@schedule.Status</td>
+                        <td>
+                            @if (schedule.Status == "Scheduled")
+                            {
+                                <button class="btn btn-warning btn-sm" @onclick="() => OnBook(schedule)">
+                                    <span class="oi oi-lock-unlocked"></span> Book Now
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary btn-sm" disabled>
+                                    <span class="oi oi-lock-locked"></span> Book Now
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ScheduleModel> schedules = new();
+    private List<string> appointmentDates = new();
+    private string appointmentDateFilter = "";
+    private Dictionary<Guid, ProfessionalModel> professionals = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSchedules();
+    }
+
+    private async Task LoadSchedules()
+    {
+        var scheduleList = await ScheduleService.GetScheduleAsync(appointmentDateFilter);
+
+        if (scheduleList == null || !scheduleList.Any())
+        {
+            schedules = new List<ScheduleModel>();
+            return;
+        }
+
+        professionals = new Dictionary<Guid, ProfessionalModel>();
+
+        foreach (var professionalId in scheduleList.Select(s => s.ProfessionalId).Distinct())
+        {
+            var professional = await ProfessionalService.GetProfessionalByIdAsync(professionalId);
+            if (professional != null)
+            {
+                professionals[professionalId] = professional;
+            }
+        }
+
+        schedules = scheduleList.Select(s => new ScheduleModel
+            {
+                Id = s.Id,
+                ProfessionalId = s.ProfessionalId,  // Keep ProfessionalId for reference
+                AppointmentDate = s.AppointmentDate,
+                AppointmentTime = s.AppointmentTime,
+                Status = s.Status
+            }).ToList();
+
+        appointmentDates = schedules.Select(s => s.AppointmentDate.ToString("yyyy-MM-dd")).Distinct().ToList();
+    }
+
+    private async Task OnFilterChanged()
+    {
+        await LoadSchedules();
+    }
+
+    private void OnBook(ScheduleModel schedule)
+    {
+        NavigationManager.NavigateTo($"/BookAppointment/{schedule.Id}");
+    }
+}

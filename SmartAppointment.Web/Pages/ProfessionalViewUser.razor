@@ -96,7 +96,7 @@
 }
  *@
  
- @page "/ProfessionalView"
+ @page "/ProfessionalViewUser"
 @using SmartAppointment.Domain.Entities
 @using SmartAppointment.Web.Models
 @inject ProfessionalService ProfessionalService
@@ -132,7 +132,7 @@
                 <th>Email</th>
                 <th>Phone Number</th>
                 <th>SLMC</th>
-                <th>Actions</th>
+             
             </tr>
         </thead>
         <tbody>
@@ -158,14 +158,7 @@
                         <td>@professional.Email</td>
                         <td>@professional.PhoneNumber</td>
                         <td>@professional.SLMC</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => OnEditProfessional(professional.Id)">
-                                Edit
-                            </button>
-                            <button class="btn btn-danger btn-sm ms-2" @onclick="() => OnDeleteProfessional(professional.Id)">
-                                Delete
-                            </button>
-                        </td>
+                   
                     </tr>
                 }
             }

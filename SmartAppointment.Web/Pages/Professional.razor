@@ -8,7 +8,7 @@
 <div class="container">
     <div class="card shadow-sm">
         <div class="card-header bg-secondary text-white">
-            <h3 class="mb-0">Add Professional</h3>
+            <h3 class="mb-0">Add Doctor</h3>
         </div>
         <div class="card-body">
             @if (!isSubmitted)
@@ -20,7 +20,7 @@
                     <div class="mb-3">
                         <label for="name" class="form-label">Name:</label>
                         <InputText id="name" class="form-control" @bind-Value="professional.Name" />
-                        <ValidationMessage For="@(() => professional.Name)" class="text-danger" />
+                    
                     </div>
 
                     <div class="mb-3">
@@ -32,25 +32,25 @@
                                 <option value="@specialization">@specialization</option>
                             }
                         </InputSelect>
-                        <ValidationMessage For="@(() => professional.Specialization)" class="text-danger" />
+                       
                     </div>
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Email:</label>
                         <InputText id="email" class="form-control" @bind-Value="professional.Email" />
-                        <ValidationMessage For="@(() => professional.Email)" class="text-danger" />
+                        
                     </div>
 
                     <div class="mb-3">
                         <label for="SLMC" class="form-label">Sri Lanka Medical Council Registration Number:</label>
                         <InputText id="SLMC" class="form-control" @bind-Value="professional.SLMC" />
-                        <ValidationMessage For="@(() => professional.SLMC)" class="text-danger" />
+                      
                     </div>
 
                     <div class="mb-3">
                         <label for="phoneNumber" class="form-label">Phone Number:</label>
                         <InputText id="phoneNumber" class="form-control" @bind-Value="professional.PhoneNumber" />
-                        <ValidationMessage For="@(() => professional.PhoneNumber)" class="text-danger" />
+                       
                     </div>
                   
                     

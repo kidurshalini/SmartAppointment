@@ -220,7 +220,7 @@ namespace SmartAppointment.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SmartAppointment.Domain.Entities.Appointment", b =>
+            modelBuilder.Entity("SmartAppointment.Domain.Entities.AppointmentModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -229,26 +229,23 @@ namespace SmartAppointment.Infrastructure.Migrations
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("ProfessionalId")
+                    b.Property<string>("PatientName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SchedulerId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProfessionalId");
+                    b.HasIndex("SchedulerId");
 
                     b.ToTable("Appointments");
                 });
@@ -328,6 +325,10 @@ namespace SmartAppointment.Infrastructure.Migrations
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("AppointmentTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -399,15 +400,15 @@ namespace SmartAppointment.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SmartAppointment.Domain.Entities.Appointment", b =>
+            modelBuilder.Entity("SmartAppointment.Domain.Entities.AppointmentModel", b =>
                 {
-                    b.HasOne("SmartAppointment.Domain.Entities.Professional", "Professional")
-                        .WithMany()
-                        .HasForeignKey("ProfessionalId")
+                    b.HasOne("SmartAppointment.Domain.Entities.scheduleModel", "Scheduler")
+                        .WithMany("Appointments")
+                        .HasForeignKey("SchedulerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Professional");
+                    b.Navigation("Scheduler");
                 });
 
             modelBuilder.Entity("SmartAppointment.Domain.Entities.scheduleModel", b =>
@@ -424,6 +425,11 @@ namespace SmartAppointment.Infrastructure.Migrations
             modelBuilder.Entity("SmartAppointment.Domain.Entities.Professional", b =>
                 {
                     b.Navigation("scheduleModel");
+                });
+
+            modelBuilder.Entity("SmartAppointment.Domain.Entities.scheduleModel", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }

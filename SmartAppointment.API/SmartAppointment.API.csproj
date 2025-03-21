@@ -27,6 +27,7 @@
 		<ProjectReference Include="..\SmartAppointment.Application\SmartAppointment.Application.csproj" />
 		<ProjectReference Include="..\SmartAppointment.Infrastructure\SmartAppointment.Infrastructure.csproj" />
 		<ProjectReference Include="..\SmartAppointment.Domain\SmartAppointment.Domain.csproj" />
+		<ProjectReference Include="..\SmartAppointment.Web\SmartAppointment.Web.csproj" />
 		
 	</ItemGroup>
 

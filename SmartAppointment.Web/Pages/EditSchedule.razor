@@ -1,4 +1,4 @@
-﻿@page "/Schedule"
+﻿@page "/EditSchedule/{scheduleId:guid}"
 @using SmartAppointment.Domain.Entities
 @using SmartAppointment.Web.Models
 @using SmartAppointment.Web.Services
@@ -9,14 +9,14 @@
 <div class="container">
     <div class="card shadow-sm">
         <div class="card-header bg-secondary text-white">
-            <h3 class="mb-0">Add Schedule</h3>
+            <h3 class="mb-0">Edit Schedule</h3>
         </div>
         <div class="card-body">
             @if (!isSubmitted)
             {
-                <EditForm Model="@scheduleModel" OnValidSubmit="HandleValidSubmit">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary class="alert alert-danger" />
+              <EditForm Model="scheduleModel" OnValidSubmit="OnSave">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="alert alert-danger" />
 
                     <!-- Professional Dropdown -->
                     <div class="mb-3">
@@ -31,20 +31,20 @@
                                 }
                             }
                         </InputSelect>
-                     
+                    
                     </div>
 
                     <!-- Appointment Date -->
                     <div class="mb-3">
                         <label for="appointmentDate" class="form-label">Appointment Date:</label>
                         <InputDate id="appointmentDate" class="form-control" @bind-Value="scheduleModel.AppointmentDate" />
-                       
+                  
                     </div>
 
                     <div class="mb-3">
                         <label for="appointmentTime" class="form-label">Appointment Time:</label>
                         <InputText id="appointmentTime" class="form-control" @bind-Value="scheduleModel.AppointmentTime" />
-                 
+              
                     </div>
 
                     <!-- Status -->
@@ -56,17 +56,17 @@
                             <option value="Cancelled">Cancelled</option>
                             <option value="Completed">Completed</option>
                         </InputSelect>
-                
+                   
                     </div>
 
                     <!-- Buttons -->
                     <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        <button type="submit" class="btn btn-warning" disabled="@isLoading">
                             @if (isLoading)
                             {
                                 <span class="spinner-border spinner-border-sm"></span>
                             }
-                            Submit
+                            Update
                         </button>
 
                         <button type="button" class="btn btn-secondary ms-2" @onclick="ResetForm">Reset</button>
@@ -76,9 +76,9 @@
             else
             {
                 <div class="alert alert-success">
-                    Schedule added successfully!
+                    Schedule updated successfully!
                 </div>
-                <button class="btn btn-secondary" @onclick="ResetForm">Add Another Schedule</button>
+                <button class="btn btn-secondary" @onclick="NavigateToScheduleList">Back to Schedule List</button>
             }
 
             @if (isError)
@@ -90,7 +90,10 @@
 </div>
 
 @code {
-    private Domain.Entities.scheduleModel scheduleModel = new Domain.Entities.scheduleModel();
+    [Parameter]
+    public Guid ScheduleId { get; set; }
+
+    private ScheduleModel scheduleModel = new ScheduleModel();
     private List<ProfessionalModel> professionals = new List<ProfessionalModel>();
 
     private bool isSubmitted = false;
@@ -98,6 +101,23 @@
     private bool isError = false;
     private string errorMessage = string.Empty;
 
+ 
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            scheduleModel = await ScheduleService.GetScheduleByIdAsync(ScheduleId);
+            if (scheduleModel == null)
+            {
+                NavigationManager.NavigateTo("/ScheduleListForAP");
+            }
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            errorMessage = "Error loading schedule: " + ex.Message;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,7 +125,7 @@
         scheduleModel.AppointmentDate = DateTime.Today;
         scheduleModel.AppointmentTime = "09:00 AM"; // Default Time
 
-      // Fetch the list of professionals
+        // Fetch the list of professionals
         try
         {
             professionals = await ProfessionalService.GetProfessionalsAsync();
@@ -117,47 +137,38 @@
         }
     }
 
-    private async Task HandleValidSubmit()
+    private async Task OnSave()
     {
-        isError = false;
-        errorMessage = string.Empty;
         isLoading = true;
+        StateHasChanged();
 
-        try
+        var isUpdated = await ScheduleService.UpdateScheduleAsync(scheduleModel);
+
+        isLoading = false;
+
+        if (isUpdated)
         {
-            // Add schedule
-            bool success = await ScheduleService.AddScheduleAsync(scheduleModel);
-
-            if (success)
-            {
-                isSubmitted = true;
-            }
-            else
-            {
-                isError = true;
-                errorMessage = "Failed to add schedule. Please try again.";
-            }
+         
+            NavigationManager.NavigateTo("/SchedulerViewAP"); // Ensure this is the correct URL
         }
-        catch (Exception ex)
+        else
         {
             isError = true;
-            errorMessage = $"An error occurred: {ex.Message}";
+            errorMessage = "Failed to update the schedule.";
         }
-        finally
-        {
-            isLoading = false;
-        }
+        StateHasChanged();
     }
 
     private void ResetForm()
     {
-
-            scheduleModel = new Domain.Entities.scheduleModel();
-        scheduleModel.AppointmentDate = DateTime.Today;
-        scheduleModel.AppointmentTime = "09:00 AM"; // Default Time
-
+        scheduleModel = new ScheduleModel();
         isSubmitted = false;
         isError = false;
         errorMessage = string.Empty;
+    }
+
+    private void NavigateToScheduleList()
+    {
+        NavigationManager.NavigateTo("/ScheduleList");
     }
 }

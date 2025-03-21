@@ -1,0 +1,85 @@
+﻿@page "/BookAppointment/{scheduleId:guid}"
+@using SmartAppointment.Domain.Entities
+@using SmartAppointment.Web.Models
+
+@inject ScheduleService ScheduleService
+@inject ProfessionalService ProfessionalService
+@inject AppointmentService AppointmentService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<h3>Book Appointment</h3>
+
+@if (schedule != null)
+{
+    <div class="schedule-details mb-4">
+        <h5>Schedule Details</h5>
+        <p><strong>Doctor:</strong> @professionalName</p> <!-- Display Doctor's Name -->
+        <p><strong>Appointment Date:</strong> @schedule.AppointmentDate.ToString("yyyy-MM-dd")</p>
+        <p><strong>Appointment Time:</strong> @schedule.AppointmentTime</p>
+        <p><strong>Status:</strong> @schedule.Status</p>
+    </div>
+}
+
+<EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="patientName" class="form-label">Patient Name</label>
+        <InputText id="patientName" class="form-control" @bind-Value="appointment.PatientName" />
+    </div>
+
+    <div class="mb-3">
+        <label for="phoneNumber" class="form-label">Phone Number</label>
+        <InputText id="phoneNumber" class="form-control" @bind-Value="appointment.PhoneNumber" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Book Appointment</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid scheduleId { get; set; }
+
+    private AppointmentModel appointment = new AppointmentModel();
+    private ScheduleModel schedule;
+    private string professionalName; // Store the doctor's name
+    private ProfessionalModel professional; // Declare professional model to hold fetched doctor details
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load the schedule data using scheduleId
+        schedule = await ScheduleService.GetScheduleByIdAsync(scheduleId);
+        if (schedule != null)
+        {
+            // Assign the SchedulerId here
+            appointment.SchedulerId = schedule.Id;
+
+            // Fetch the professional (doctor) details using the ProfessionalService
+            professional = await ProfessionalService.GetProfessionalByIdAsync(schedule.ProfessionalId);
+            if (professional != null)
+            {
+                professionalName = professional.Name; // Assign the professional's name
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Set the created date and assign the scheduler ID
+        appointment.CreatedDate = DateTime.UtcNow;
+
+        // Call the AppointmentService to save the appointment
+        var isCreated = await AppointmentService.CreateAppointmentAsync(appointment);
+        if (isCreated)
+        {
+            NavigationManager.NavigateTo("/SchedulerViewAP"); // Redirect after successful appointment creation
+        }
+        else
+        {
+            await JS.InvokeAsync<object>("alert", "There was an error booking the appointment.");
+        }
+    }
+}

@@ -62,7 +62,7 @@
 
 <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
     <DataAnnotationsValidator />
-    <ValidationSummary />
+    <ValidationSummary class="alert alert-danger" />
 
     <MudPaper Elevation="3" Class="pa-4" MaxWidth="400px" Style="margin:auto; border: 2px solid #ddd; border-radius: 8px;">
         <MudText Typo="Typo.h2" Align="Align.Center" Class="mb-4">Create an Account</MudText>

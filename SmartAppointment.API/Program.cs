@@ -98,13 +98,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SmartAppointment.Application.Interfaces;
+
 using SmartAppointment.Infrastructure.Data;
-using SmartAppointment.Infrastructure.Persistence;
+
 using System.Reflection;
 using System.Text;
 using AutoMapper;
-using SmartAppointment.Application.Mappings;
+
 using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -148,13 +148,11 @@ builder.Services.AddCors(options =>
 });
 
 // 🔹 5️⃣ Register Application Services & Repositories
-builder.Services.AddScoped<IAppointmentService, AppointmentRepository>();
+
 
 // 🔹 6️⃣ Register MediatR for Application Layer (CQRS)
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
-// 🔹 Register AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // 🔹 7️⃣ Add Controllers & Swagger
 builder.Services.AddControllers();

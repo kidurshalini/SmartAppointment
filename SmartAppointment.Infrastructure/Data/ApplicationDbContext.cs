@@ -9,17 +9,20 @@ namespace SmartAppointment.Infrastructure.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        public DbSet<Appointment> Appointments { get; set; }
+       // public DbSet<AppointmentModel> AppointmentsDetils { get; set; }
         public DbSet<Professional> Professionals { get; set; }
         public DbSet<ProfessionalAvailability> ProfessionalAvailabilities { get; set; }
         public DbSet<scheduleModel> scheduler { get; set; }
+
+        public DbSet<AppointmentModel> Appointments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Appointment>()
-                .Property(a => a.Status)
-                .HasConversion<string>(); // Store as string instead of int
+            modelBuilder.Entity<AppointmentModel>()
+             .HasOne(a => a.Scheduler)
+             .WithMany(s => s.Appointments)
+             .HasForeignKey(a => a.SchedulerId);
 
             modelBuilder.Entity<Professional>()
            .HasIndex(p => p.SLMC)
@@ -30,6 +33,9 @@ namespace SmartAppointment.Infrastructure.Data
              .WithMany(p => p.scheduleModel) // Professional has many Schedules
              .HasForeignKey(s => s.ProfessionalId) // Foreign key in Schedule
              .OnDelete(DeleteBehavior.Cascade); // Optional: Define delete behavior
+
+
+
         }
     }
 

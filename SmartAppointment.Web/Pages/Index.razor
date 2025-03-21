@@ -3,11 +3,24 @@
 <PageTitle>Smart Appointment Booking</PageTitle>
 
 <header class="hero-section py-3">
-    <div class="container text-center">
-        <h1 class="display-5 fw-bold">Smart & Hassle-Free Appointments</h1>
-        <p class="text-muted">Quick, easy, and efficient scheduling at your fingertips.</p>
-        <a href="#" class="btn btn-primary">Book Now</a>
-    </div>
+
+    @if(isAuthenticated == true)
+    {
+        <div class="container text-center">
+            <h1 class="display-5 fw-bold">Smart & Hassle-Free Appointments</h1>
+            <p class="text-muted">Quick, easy, and efficient scheduling at your fingertips.</p>
+            <a href="SchedulerViewUser" class="btn btn-primary">Book Now</a>
+        </div>
+    }
+    else
+    {
+        <div class="container text-center">
+            <h1 class="display-5 fw-bold">Smart & Hassle-Free Appointments</h1>
+            <p class="text-muted">Quick, easy, and efficient scheduling at your fingertips.</p>
+            <a href="/register" class="btn btn-primary">Register Now</a>
+        </div>
+    }
+
 </header>
 
 <section id="features" class="py-3 text-center">
@@ -30,3 +43,46 @@
     </div>
 </section>
 
+@code {
+
+    private bool isAuthenticated = false;
+    private bool isAdmin = false;
+    private bool isUser = false;
+    private bool isProfessional = false;
+    private bool isInitialized = false;
+
+ 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Get the token from localStorage
+                var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+                isAuthenticated = !string.IsNullOrEmpty(token);
+
+                if (isAuthenticated)
+                {
+                    // Get the role from localStorage
+                    var role = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "userRole");
+                    Console.WriteLine($"Retrieved role: {role}"); // Debugging
+
+                    if (!string.IsNullOrEmpty(role))
+                    {
+                        isAdmin = role.Contains("Admin");
+                        isProfessional = role.Contains("Professional");
+                        isUser = role.Contains("User");
+                    }
+                }
+
+                isInitialized = true;
+                StateHasChanged(); // Update the UI
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}"); // Debugging
+            }
+        }
+    }
+}

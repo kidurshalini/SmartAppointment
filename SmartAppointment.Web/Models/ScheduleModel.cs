@@ -57,13 +57,22 @@ namespace SmartAppointment.Web.Models
         public Guid ProfessionalId { get; set; } // Foreign key
 
 
+        [Required(ErrorMessage = "Appointment Time is required.")]
+        [RegularExpression(@"^(0[1-9]|1[0-2]):([0-5][0-9]) (AM|PM)$", ErrorMessage = "Invalid time format. Please use HH:mm AM/PM format.")]
+        public string AppointmentTime { get; set; }
+
+
         [Required(ErrorMessage = "AppointmentDate is required.")]
         [FutureDate(ErrorMessage = "AppointmentDate must be today or a future date.")]
-        public DateTime AppointmentDate { get; set; } = DateTime.Today;
+        public DateTime AppointmentDate { get; set; }
 
         [Required(ErrorMessage = "Status is required.")]
         [StringLength(50, ErrorMessage = "Status cannot exceed 50 characters.")]
         public string Status { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+
     }
 
     // Custom validation attribute to ensure the date is today or in the future
